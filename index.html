@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mount</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--g1:#0f0c29;--g2:#302b63;--g3:#24243e;--g4:#0f0c29}
+    @media (prefers-color-scheme: light){
+      :root{--g1:#ff9a9e;--g2:#fad0c4;--g3:#a1c4fd;--g4:#c2e9fb}
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:'Poppins',sans-serif;
+      min-height:200vh;color:#fff;
+      background:linear-gradient(-45deg,var(--g1),var(--g2),var(--g3),var(--g4));
+      background-size:400% 400%;
+      animation:aurora 18s ease infinite;
+      overflow-x:hidden;
+      transition:background 2s ease;
+    }
+    @keyframes aurora{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+    /* SALJU */
+    .snow{
+      position:fixed;top:-10px;left:0;width:100%;height:100vh;
+      pointer-events:none;z-index:1;
+      background:transparent;
+    }
+    .flake{
+      position:absolute;top:-10px;
+      color:#fff;font-size:1.2em;
+      user-select:none;pointer-events:none;
+      animation:fall linear infinite;
+    }
+    @keyframes fall{
+      to{transform:translateY(110vh) rotate(360deg);}
+    }
+
+    header{
+      position:sticky;top:0;z-index:10;
+      text-align:center;padding:3rem 1rem 2rem;
+      backdrop-filter:blur(15px);
+      background:rgba(255,255,255,0.1);
+      border-bottom:1px solid rgba(255,255,255,0.2);
+    }
+    h1{
+      font-size:3.8rem;font-weight:700;
+      background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      animation:float 5s ease-in-out infinite;
+    }
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    .mode-btn{
+      position:absolute;top:1.5rem;right:2rem;
+      padding:0.7rem 1.2rem;
+      background:rgba(255,255,255,0.2);
+      border:1px solid rgba(255,255,255,0.3);
+      border-radius:50px;
+      cursor:pointer;
+      backdrop-filter:blur(10px);
+      transition:0.4s;
+    }
+    .mode-btn:hover{transform:scale(1.1);background:rgba(255,255,255,0.3);}
+
+    .mount-grid{
+      max-width:1350px;margin:2rem auto;padding:2rem;
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:2rem;
+    }
+    .card{
+      background:rgba(255,255,255,0.15);
+      backdrop-filter:blur(18px);
+      border-radius:24px;
+      padding:1.8rem;
+      text-align:center;
+      border:1px solid rgba(255,255,255,0.3);
+      box-shadow:0 10px 40px rgba(0,0,0,0.25);
+      opacity:0;
+      transform:translateY(80px) rotateX(30deg);
+      transition:all 0.9s cubic-bezier(0.34,1.56,0.64,1);
+      position:relative;overflow:hidden;
+    }
+    .card::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,0),rgba(255,255,255,0.2));
+      transform:translateY(100%);transition:0.8s;
+    }
+    .card:hover::before{transform:translateY(0);}
+    .card:hover{
+      transform:translateY(-18px) rotateX(0) scale(1.08);
+      background:rgba(255,255,255,0.28);
+      box-shadow:0 30px 70px rgba(0,0,0,0.35);
+    }
+    .num{font-size:1rem;opacity:0.85;}
+    .name{
+      font-size:1.5rem;font-weight:700;margin-top:0.5rem;
+      background:linear-gradient(90deg,var(--c2),var(--c1));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+
+    footer{
+      text-align:center;padding:4rem 1rem;
+      background:rgba(0,0,0,0.3);
+      backdrop-filter:blur(10px);
+    }
+
+    /* SCROLL KE ATAS */
+    .to-top{
+      position:fixed;bottom:30px;right:30px;
+      width:50px;height:50px;
+      background:rgba(255,255,255,0.25);
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;opacity:0;
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.3);
+      transition:0.4s;z-index:99;
+    }
+    .to-top.show{opacity:1;transform:translateY(0);}
+  </style>
+</head>
+<body>
+
+  <!-- SALJU -->
+  <div class="snow" id="snow"></div>
+
+  <header>
+    <h1>Mount</h1>
+    <p>WELCOME TO THE LIST MOUNT</p>
+    <div class="mode-btn" onclick="toggleMode()">Malam</div>
+  </header>
+
+  <div class="mount-grid" id="mountList"></div>
+
+  <footer>
+    <p>ARCEUSXARCHIVE HUB 2025 & 2026</p>
+  </footer>
+
+  <!-- TOMBOl KE ATAS -->
+  <div class="to-top" id="toTop" onclick="scrollToTop()">Up</div>
+
+  <script>
+    // AUTO DETEKSI MALAM (06 PM - 06 AM WIB)
+    const hour = new Date().getHours();
+    const isNight = hour >= 18 || hour < 6;
+    if(isNight) document.documentElement.style.setProperty('--g1','#0f0c29');
+    else document.documentElement.style.setProperty('--g1','#ff9a9e');
+
+    // TOGGLE MANUAL
+    function toggleMode(){
+      const root = document.documentElement;
+      const g1 = getComputedStyle(root).getPropertyValue('--g1').trim();
+      if(g1==='#ff9a9e'){
+        root.style.setProperty('--g1','#0f0c29');
+        root.style.setProperty('--g2','#302b63');
+        root.style.setProperty('--g3','#24243e');
+        root.style.setProperty('--g4','#0f0c29');
+      }else{
+        root.style.setProperty('--g1','#ff9a9e');
+        root.style.setProperty('--g2','#fad0c4');
+        root.style.setProperty('--g3','#a1c4fd');
+        root.style.setProperty('--g4','#c2e9fb');
+      }
+    }
+
+    // 30 PALET CANTIK (ganti tiap 6 detik)
+    const palettes=[
+      {g:['#ff9a9e','#fad0c4','#a1c4fd','#c2e9fb'],c:['#ff6bcb','#ffb86c','#7fd8ff']},
+      {g:['#a18cd1','#fbc2eb','#ff9a9e','#fad0c4'],c:['#f093fb','#f5576c','#4facfe']},
+      {g:['#84fab0','#8fd3f4','#a6c0fe','#f68084'],c:['#43e97b','#00c6fb','#667eea']},
+      {g:['#0f0c29','#302b63','#24243e','#0f0c29'],c:['#667eea','#764ba2','#f093fb']},
+      {g:['#667eea','#764ba2','#f093fb','#f5576c'],c:['#a8edea','#fed6e3','#d299c2']},
+      {g:['#89f7fe','#66a6ff','#f093fb','#f5576c'],c:['#48c6ef','#6f86d6','#4e54c8']}
+    ];
+    function gantiTema(){
+      const p = palettes[Math.floor(Math.random()*palettes.length)];
+      document.documentElement.style.setProperty('--g1',p.g[0]);
+      document.documentElement.style.setProperty('--g2',p.g[1]);
+      document.documentElement.style.setProperty('--g3',p.g[2]);
+      document.documentElement.style.setProperty('--g4',p.g[3]);
+      document.documentElement.style.setProperty('--c1',p.c[0]);
+      document.documentElement.style.setProperty('--c2',p.c[1]);
+    }
+    setInterval(gantiTema,6000); gantiTema();
+
+    // DATA GUNUNG
+    const mounts = [
+      "MT. AYONIMA","MT AHPAYAH","Gunung Gua","TUNGGANGAN NEORA","MOUNT IDIH","Mount Gemi","Mount Mika","GUNUNG LANGIT","Mount Pribados","MOUNT GAGAL",
+      "GUNUNG GABUT","Gunung Prambanan","Mount Aosora","HALLYU EXPEDITION","Mount Isenhold","Mount Tuing","MOUNT HIJAU","MOUNT ZENITH","MOUNT NEN","MOUNT SERENDIPITY",
+      "BUKIT RAMEN","Mount When Ya","Gunung FREESTYLE","MOUNT FUNNY NEW","PADAHAL GAMPANG MOUNT","Mount Kitai","MOUNT AGE","MOUNT YAHHASU","Mount Bagen Dah","Gunung YNTKTS",
+      "MOUNT DREAMORA","WIB","Gunung Nivara","Expedition Antarctica","MOUNT GARUDA","Mount Wasabi","Mount Cakrabuana","CIWIDEY KAWAH PUTIH","BALI HOT EXPEDITION","Gunung Lembara",
+      "Mount Awanlight","Mount Hanami","MOUNT RAWR","Mount HappyLand","MOUNT QIAN","TEBING RXTA","GUNUNG SANTUY","MOUNT NYONG","Puncak dyaksa","EKSPEDISI PARVATA",
+      "Mount Sumbing","MOUNT SUNNY","JADI ADMIN GUNUNG","Mount YaGahbut","GUNUNG CANTIKKAA","MOUNT JAGUNG","Mount Chill Danta","Mount Acariz (belum diperbaiki)","Yahayuk Mount (diperbaiki)","Gunung Malaikat",
+      "GUNUNG SUGOI","Mount Ducky","Mount Garvix Beta","Mount Nowa","Mount Bingung","Mount Mulu","GUNUNG YAUDAH DEH","Gunung Mono","Mount Cow","Mount Katjuk",
+      "Gunung Baraya","Mount Feels","GUNUNG ENJOY","NEW MOUNT KATELO","Gunung Gataulah","MOUNT RAGON","Gunung Amazon","MOUNT TAHURA","MOUNT KANDALA","MOUNT OALAH",
+      "MOUNT MAUSSY","Zuzu Mount","EYWALORA","Mount Lovora","MOUNT CHIBI","Mount Kicik","Mount Cinta","Mount Aetherlands","MOUNT DAY ONE","Mount Serasa",
+      "Mount Kulabu","GUNUNG PAGI","MOUNT ICELIGHT","Mount Yeroo","GUNUNG ANJIR","MOUNT KUMAHA","AZURION EXP","Gunung Sakahayang","MOUNT MUAL","Mount Lembayana",
+      "EKSPEDISI DUGONG","Mount Kalcer","MOUNT KRETEK","Mount Sanak","MOUNT KIERU","Mount Sunzeth","Mount Atin","Mount Kulabu","MOUNT GLORY","MOUNT SHISA",
+      "Mount Banyu","Gunung Mono V2","Mount Daun"
+    ];
+
+    // ANIMASI KARTU SUPER HALUS
+    const container = document.getElementById('mountList');
+    mounts.forEach((m,i)=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="num">#${(i+1).toString().padStart(2,'0')}</div>
+        <div class="name">${m}</div>
+      `;
+      container.appendChild(card);
+      setTimeout(()=>{card.style.opacity=1;card.style.transform='translateY(0) rotateX(0)';}, i*70);
+    });
+
+    // SALJU TURUN 200 BUTIR
+    const snow = document.getElementById('snow');
+    for(let i=0;i<200;i++){
+      const f = document.createElement('div');
+      f.className='flake';
+      f.innerHTML = ['','','*'][Math.floor(Math.random()*3)];
+      f.style.left = Math.random()*100+'vw';
+      f.style.animationDuration = 4+Math.random()*8+'s';
+      f.style.animationDelay = Math.random()*5+'s';
+      f.style.fontSize = 0.6+Math.random()*1+'em';
+      f.style.opacity = 0.4+Math.random()*0.6;
+      snow.appendChild(f);
+    }
+
+    // SCROLL KE ATAS
+    const toTop = document.getElementById('toTop');
+    window.addEventListener('scroll',()=>{
+      toTop.classList.toggle('show',window.scrollY>500);
+    });
+    function scrollToTop(){
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  </script>
+</body>
+</html>
